@@ -176,14 +176,40 @@
         document.getElementById('profile-location-text').textContent = user.location;
       }
 
+      // Actions container
+      const actionContainer = document.getElementById('edit-btn-container');
+
       // Edit button (only for own profile)
       if (isOwnProfile) {
-        document.getElementById('edit-btn-container').innerHTML = `
+        actionContainer.innerHTML = `
           <a href="/edit-profile" class="btn btn-outline btn-sm">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
             Edit Profile
           </a>`;
+      } else {
+        // Connect button (for other users)
+        const isConnected = user.connections && user.connections.some(c => 
+          (c._id || c) === currentUser._id
+        );
+        
+        actionContainer.innerHTML = `
+          <button onclick="toggleConnection('${user._id}')" class="btn ${isConnected ? 'btn-outline' : 'btn-primary'} btn-sm" id="connect-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="${isConnected ? 'M5 13l4 4L19 7' : 'M12 4.5v15m7.5-7.5h-15'}" />
+            </svg>
+            <span id="connect-text">${isConnected ? 'Connected' : 'Connect'}</span>
+          </button>`;
       }
+
+      // Update meta info (connections count)
+      const connectionsCount = user.connections ? user.connections.length : 0;
+      const metaContainer = document.getElementById('profile-meta');
+      metaContainer.insertAdjacentHTML('beforeend', `
+        <span class="flex items-center gap-1">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+          <span class="font-semibold" id="conn-count">${connectionsCount}</span> connections
+        </span>
+      `);
 
       // About / Bio
       if (user.bio) {
@@ -234,6 +260,49 @@
         `).join('');
       } catch (error) {
         // Silently fail
+      }
+    }
+
+    /**
+     * Toggle connection with a user
+     */
+    let isConnecting = false;
+    async function toggleConnection(userId) {
+      if (isConnecting) return;
+      isConnecting = true;
+
+      const btn = document.getElementById('connect-btn');
+      const text = document.getElementById('connect-text');
+      const countEl = document.getElementById('conn-count');
+      const originalHtml = btn.innerHTML;
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner spinner-sm"></div>';
+
+      try {
+        const result = await api.connectUser(userId);
+        const isConnected = result.isConnected;
+
+        // Update button
+        btn.className = `btn ${isConnected ? 'btn-outline' : 'btn-primary'} btn-sm`;
+        btn.innerHTML = `
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="${isConnected ? 'M5 13l4 4L19 7' : 'M12 4.5v15m7.5-7.5h-15'}" />
+          </svg>
+          <span id="connect-text">${isConnected ? 'Connected' : 'Connect'}</span>
+        `;
+
+        // Update count
+        let count = parseInt(countEl.textContent);
+        countEl.textContent = isConnected ? count + 1 : count - 1;
+
+        showToast(result.message, 'success');
+      } catch (error) {
+        showToast('Failed to update connection', 'error');
+        btn.innerHTML = originalHtml;
+      } finally {
+        btn.disabled = false;
+        isConnecting = false;
       }
     }
 
