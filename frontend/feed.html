@@ -647,22 +647,61 @@
         }
 
         container.innerHTML = suggestions.map(s => `
-          <a href="/profile?id=${s._id}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition mb-1 no-underline">
-            <div class="flex-shrink-0">
+          <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition mb-1 stagger-in">
+            <a href="/profile?id=${s._id}" class="flex-shrink-0 no-underline">
               ${getAvatarHTML(s, 'profile-avatar-sm')}
-            </div>
+            </a>
             <div class="flex-1 min-w-0">
-              <p class="font-semibold text-xs text-gray-900 truncate">${escapeHtml(s.name)}</p>
-              <p class="text-xs text-gray-500 truncate">${escapeHtml(s.headline || '')}</p>
-              <div class="flex flex-wrap gap-1 mt-1">
-                ${s.matchingSkills.map(ms => `<span class="skill-tag skill-tag-match" style="font-size:10px;padding:1px 6px">${escapeHtml(ms)}</span>`).join('')}
+              <a href="/profile?id=${s._id}" class="font-semibold text-xs text-gray-900 truncate block hover:text-blue-600 no-underline">${escapeHtml(s.name)}</a>
+              <p class="text-[10px] text-gray-500 truncate mb-1">${escapeHtml(s.headline || '')}</p>
+              <div class="flex items-center justify-between mt-1">
+                <div class="flex flex-wrap gap-1">
+                  ${s.matchingSkills.slice(0, 2).map(ms => `<span class="skill-tag skill-tag-match" style="font-size:9px;padding:0px 4px">${escapeHtml(ms)}</span>`).join('')}
+                </div>
+                <button onclick="toggleQuickConnect('${s._id}', this)" class="btn btn-outline py-0.5 px-2 text-[10px] h-auto flex items-center gap-1">
+                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                  Connect
+                </button>
               </div>
             </div>
-          </a>
+          </div>
         `).join('');
 
       } catch (error) {
         document.getElementById('suggestions-list').innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Could not load suggestions</p>';
+      }
+    }
+
+    /**
+     * Quick connect from sidebar
+     */
+    async function toggleQuickConnect(userId, btn) {
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:10px;height:10px"></div>';
+
+      try {
+        const result = await api.connectUser(userId);
+        if (result.isConnected) {
+          btn.innerHTML = '<svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Done';
+          btn.classList.add('bg-blue-50');
+          showToast(result.message, 'success');
+          // Optionally remove from list after a delay
+          setTimeout(() => {
+            btn.closest('.flex').style.opacity = '0';
+            btn.closest('.flex').style.transform = 'translateX(20px)';
+            setTimeout(() => {
+              btn.closest('.flex').remove();
+              if (document.getElementById('suggestions-list').children.length === 0) {
+                loadSuggestions(currentUser._id);
+              }
+            }, 300);
+          }, 1000);
+        }
+      } catch (error) {
+        showToast('Failed to connect', 'error');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
       }
     }
 

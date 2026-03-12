@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Network - Mini LinkedIn</title>
+  <meta name="description" content="Manage your professional connections and discover new people on Mini LinkedIn.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-gray-50">
+
+  <div id="navbar-container"></div>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Left Sidebar -->
+      <aside class="lg:col-span-3">
+        <div class="card p-4 sticky top-20">
+          <h3 class="font-semibold text-gray-900 mb-4">Manage My Network</h3>
+          <ul class="space-y-1">
+            <li>
+              <button onclick="switchTab('connections')" class="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition text-sm text-gray-600 active-tab" id="tab-connections">
+                <span class="flex items-center gap-2">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                  Connections
+                </span>
+                <span id="connections-count-badge" class="font-semibold">—</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="switchTab('suggestions')" class="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition text-sm text-gray-600" id="tab-suggestions">
+                <span class="flex items-center gap-2">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+                  Suggestions
+                </span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Center Content -->
+      <div class="lg:col-span-9">
+        <div class="card p-6 min-h-[400px]">
+          <h2 id="view-title" class="text-xl font-bold text-gray-900 mb-6">Your Connections</h2>
+          <div id="network-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+             <!-- Items will be loaded here -->
+          </div>
+          
+          <!-- Empty State -->
+          <div id="network-empty" style="display:none" class="text-center py-20">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+               <svg width="32" height="32" fill="gray" viewBox="0 0 24 24"><path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">No connections yet</h3>
+            <p class="text-sm text-gray-500 mt-2">Grow your network by discovering people with similar skills.</p>
+            <button onclick="switchTab('suggestions')" class="btn btn-primary mt-4">Discover People</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .active-tab {
+      background: var(--linkedin-blue-light) !important;
+      color: var(--linkedin-blue) !important;
+      font-weight: 600 !important;
+    }
+  </style>
+
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script>
+    let currentView = 'connections';
+    let userProfile = null;
+
+    async function initNetwork() {
+      document.getElementById('navbar-container').innerHTML = generateNavbar('');
+      userProfile = await checkAuth();
+      if (!userProfile) return;
+      
+      loadNetwork();
+      updateNotificationBadge();
+    }
+
+    async function loadNetwork() {
+      const container = document.getElementById('network-container');
+      const emptyState = document.getElementById('network-empty');
+      const title = document.getElementById('view-title');
+      
+      container.innerHTML = '<div class="col-span-full py-10 text-center"><div class="spinner mx-auto"></div></div>';
+      emptyState.style.display = 'none';
+
+      try {
+        if (currentView === 'connections') {
+          title.textContent = 'Your Connections';
+          const connections = await api.getConnections();
+          document.getElementById('connections-count-badge').textContent = connections.length;
+          
+          if (connections.length === 0) {
+            container.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+          }
+          
+          container.innerHTML = connections.map(person => createPersonCard(person, true)).join('');
+        } else {
+          title.textContent = 'People You May Know';
+          const suggestions = await api.getSuggestions(userProfile._id);
+          
+          if (suggestions.length === 0) {
+            container.innerHTML = '';
+            emptyState.style.display = 'block';
+            emptyState.querySelector('h3').textContent = 'No suggestions found';
+            emptyState.querySelector('p').textContent = 'Try adding more skills to your profile.';
+            return;
+          }
+          
+          container.innerHTML = suggestions.map(person => createPersonCard(person, false)).join('');
+        }
+      } catch (error) {
+        showToast('Failed to load network data', 'error');
+      }
+    }
+
+    function createPersonCard(person, isConnection) {
+      return `
+        <div class="border border-gray-100 rounded-xl p-4 flex flex-col items-center text-center hover:shadow-md transition">
+          <a href="/profile?id=${person._id}" class="mb-3">
+             <div class="w-20 h-20 rounded-full border-2 border-white shadow-sm overflow-hidden">
+                ${getAvatarHTML(person, 'w-full h-full')}
+             </div>
+          </a>
+          <a href="/profile?id=${person._id}" class="font-bold text-gray-900 hover:text-blue-600 hover:underline no-underline truncate w-full">${escapeHtml(person.name)}</a>
+          <p class="text-xs text-gray-500 mt-1 line-clamp-2 min-h-[32px]">${escapeHtml(person.headline || 'Member')}</p>
+          
+          <div class="mt-4 w-full">
+            <button onclick="toggleConnection('${person._id}', this)" class="btn ${isConnection ? 'btn-outline' : 'btn-primary'} btn-sm w-full flex items-center justify-center gap-2">
+               ${isConnection ? 'Connected' : 'Connect'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function toggleConnection(userId, btn) {
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner spinner-sm"></div>';
+
+      try {
+        const result = await api.connectUser(userId);
+        if (result.isConnected) {
+          btn.innerHTML = 'Connected';
+          btn.className = 'btn btn-outline btn-sm w-full';
+          showToast('Connected! 🤝', 'success');
+        } else {
+          btn.innerHTML = 'Connect';
+          btn.className = 'btn btn-primary btn-sm w-full';
+          showToast('Connection removed', 'info');
+          if (currentView === 'connections') {
+            btn.closest('div.border').remove();
+            const countBadge = document.getElementById('connections-count-badge');
+            countBadge.textContent = parseInt(countBadge.textContent) - 1;
+            if (parseInt(countBadge.textContent) === 0) {
+               document.getElementById('network-empty').style.display = 'block';
+            }
+          }
+        }
+      } catch (error) {
+        showToast('Action failed', 'error');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      }
+    }
+
+    function switchTab(view) {
+      currentView = view;
+      document.querySelectorAll('[id^="tab-"]').forEach(btn => btn.classList.remove('active-tab'));
+      document.getElementById(`tab-${view}`).classList.add('active-tab');
+      loadNetwork();
+    }
+
+    initNetwork();
+  </script>
+</body>
+</html>

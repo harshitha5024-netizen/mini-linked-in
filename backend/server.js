@@ -79,6 +79,14 @@ app.get('/feed', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/feed.html'));
 });
 
+app.get('/jobs', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/jobs.html'));
+});
+
+app.get('/network', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/network.html'));
+});
+
 app.get('/profile', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/profile.html'));
 });
