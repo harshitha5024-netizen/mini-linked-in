@@ -30,10 +30,19 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '' // URL from Cloudinary
   },
+  // Professional Details
   headline: {
     type: String,
     default: '',
     maxlength: 200
+  },
+  currentCompany: {
+    type: String,
+    default: ''
+  },
+  industry: {
+    type: String,
+    default: ''
   },
   bio: {
     type: String,
@@ -50,15 +59,24 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  // Professional background
-  experience: {
-    type: String,
-    default: ''
-  },
-  education: {
-    type: String,
-    default: ''
-  },
+  // Professional background (Structured)
+  experience: [{
+    title: String,
+    company: String,
+    location: String,
+    startDate: Date,
+    endDate: Date,
+    current: Boolean,
+    description: String
+  }],
+  education: [{
+    school: String,
+    degree: String,
+    fieldOfStudy: String,
+    startDate: Date,
+    endDate: Date,
+    description: String
+  }],
   // Connections
   connections: [{
     type: mongoose.Schema.Types.ObjectId,

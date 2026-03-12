@@ -15,9 +15,13 @@ A full-stack professional networking platform with AI features, built with Node.
 - 👤 **Professional Profiles** — Name, headline, bio, skills, experience, education
 - 📝 **Post System** — Create posts with images, like, and comment
 - 🎯 **Skill Match Notifications** — AI detects skills in posts and matches users
+- 🤝 **Professional Networking** — Connect with people, grow your network
+- 💼 **Job Portal** — Post and discover jobs with tailored requirements
+- 🏢 **Company Pages** — Explore, follow, and manage companies
+- 🔍 **Global Search** — Quickly find people, jobs, and companies
 - 🤖 **AI Bio Enhancer** — Polish your bio with Groq AI (LLaMA 3.3)
 - ✍️ **AI Caption Enhancer** — Make your posts more professional
-- 🖼️ **Image Uploads** — Cloudinary-powered image storage
+- 🖼️ **Image Swapping** — Cloudinary-powered image storage with local fallback
 - 📱 **Responsive Design** — Works on desktop, tablet, and mobile
 
 ---
@@ -180,6 +184,20 @@ mini-ai-linkedin/
 | GET | `/api/posts` | Get feed (paginated) |
 | POST | `/api/posts/:id/like` | Like/unlike a post |
 | POST | `/api/posts/:id/comment` | Comment on a post |
+
+### Jobs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/jobs` | Post a new job |
+| GET | `/api/jobs` | Get all jobs |
+| GET | `/api/jobs/:id` | Get job details |
+
+### Companies
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/companies` | List all companies |
+| POST | `/api/companies` | Register a new company |
+| POST | `/api/companies/:id/follow` | Follow/unfollow company |
 
 ### AI
 | Method | Endpoint | Description |

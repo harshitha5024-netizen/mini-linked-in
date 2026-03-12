@@ -131,6 +131,18 @@ const api = {
 
   getJobById: (id) => apiRequest(`/jobs/${id}`),
 
+  // --- Company Endpoints ---
+  getCompanies: () => apiRequest('/companies'),
+
+  createCompany: (data) => apiRequest('/companies', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+
+  toggleFollowCompany: (id) => apiRequest(`/companies/${id}/follow`, {
+    method: 'POST'
+  }),
+
   // --- AI Endpoints ---
   enhanceBio: (bio) => apiRequest('/ai/enhance-bio', {
     method: 'POST',
