@@ -65,6 +65,17 @@
             <p class="text-xs text-gray-400 mt-1">Appears below your name on your profile</p>
           </div>
 
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="input-label" for="currentCompany">Current Company</label>
+              <input type="text" id="currentCompany" class="input" placeholder="e.g. Google">
+            </div>
+            <div>
+              <label class="input-label" for="industry">Industry</label>
+              <input type="text" id="industry" class="input" placeholder="e.g. Software Development">
+            </div>
+          </div>
+
           <div>
             <label class="input-label" for="location">Location</label>
             <input type="text" id="location" class="input" placeholder="e.g., San Francisco, CA">
@@ -167,6 +178,8 @@
       // Populate form fields
       document.getElementById('name').value = user.name || '';
       document.getElementById('headline').value = user.headline || '';
+      document.getElementById('currentCompany').value = user.currentCompany || '';
+      document.getElementById('industry').value = user.industry || '';
       document.getElementById('location').value = user.location || '';
       document.getElementById('bio').value = user.bio || '';
       document.getElementById('experience').value = user.experience || '';
@@ -326,6 +339,8 @@
           const formData = new FormData();
           formData.append('name', document.getElementById('name').value.trim());
           formData.append('headline', document.getElementById('headline').value.trim());
+          formData.append('currentCompany', document.getElementById('currentCompany').value.trim());
+          formData.append('industry', document.getElementById('industry').value.trim());
           formData.append('location', document.getElementById('location').value.trim());
           formData.append('bio', document.getElementById('bio').value.trim());
           formData.append('experience', document.getElementById('experience').value.trim());
@@ -339,6 +354,8 @@
           await api.updateUser(currentUser._id, {
             name: document.getElementById('name').value.trim(),
             headline: document.getElementById('headline').value.trim(),
+            currentCompany: document.getElementById('currentCompany').value.trim(),
+            industry: document.getElementById('industry').value.trim(),
             location: document.getElementById('location').value.trim(),
             bio: document.getElementById('bio').value.trim(),
             skills: skills,

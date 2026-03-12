@@ -113,7 +113,7 @@ const createPost = async (req, res) => {
     const newPost = new Post({
       authorId: author._id,
       caption: caption.trim(),
-      imageUrl: req.file ? req.file.path : '',
+      imageUrl: req.file ? "/uploads/" + req.file.filename : '',
       skillsDetected,
       likes: [],
       comments: []

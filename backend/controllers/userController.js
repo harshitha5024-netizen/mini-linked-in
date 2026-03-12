@@ -116,7 +116,7 @@ const updateUser = async (req, res) => {
     }
 
     // Fields that can be updated
-    const allowedUpdates = ['name', 'headline', 'bio', 'skills', 'location', 'experience', 'education', 'profileImage'];
+    const allowedUpdates = ['name', 'headline', 'bio', 'skills', 'location', 'experience', 'education', 'profileImage', 'currentCompany', 'industry'];
     const updates = {};
 
     allowedUpdates.forEach(field => {
@@ -127,7 +127,7 @@ const updateUser = async (req, res) => {
 
     // Handle profile image upload if file is present
     if (req.file) {
-      updates.profileImage = req.file.path;
+      updates.profileImage = "/uploads/" + req.file.filename;
     }
 
     const updatedUser = await User.findByIdAndUpdate(
