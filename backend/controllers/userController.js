@@ -29,6 +29,8 @@ const createUser = async (req, res) => {
       bio: '',
       skills: [],
       location: '',
+      currentCompany: '',
+      industry: '',
       experience: '',
       education: ''
     });
@@ -84,6 +86,8 @@ const getCurrentUser = async (req, res) => {
         bio: '',
         skills: [],
         location: '',
+        currentCompany: 'New Perspective',
+        industry: '',
         experience: '',
         education: ''
       });
