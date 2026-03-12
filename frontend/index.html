@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini LinkedIn - Professional Networking with AI</title>
+  <meta name="description" content="Mini LinkedIn - Build your professional profile, share posts, and connect with people who share your skills. Powered by AI.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-gray-50">
+  <!-- Hero Section -->
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 px-4 py-3">
+      <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:var(--accent-gradient)">
+            <svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+          </div>
+          <span class="font-bold text-xl">
+            <span style="color:var(--linkedin-blue)">Mini</span><span class="text-gray-900">LinkedIn</span>
+          </span>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/login" class="btn btn-ghost text-sm">Sign In</a>
+          <a href="/signup" class="btn btn-primary text-sm">Join Now</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Content -->
+    <main class="flex-1 flex items-center">
+      <div class="max-w-6xl mx-auto px-4 py-12 lg:py-20 grid lg:grid-cols-2 gap-12 items-center">
+        <!-- Left - Text -->
+        <div class="animate-fade-in-up">
+          <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900 leading-tight mb-6">
+            Welcome to your
+            <span class="text-gradient">AI-powered</span>
+            professional community
+          </h1>
+          <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+            Build your professional profile, share your achievements, and discover people with similar skills — all enhanced by artificial intelligence.
+          </p>
+          
+          <div class="flex flex-col sm:flex-row gap-3 mb-12">
+            <a href="/signup" class="btn btn-primary btn-lg text-base">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+              Get Started — It's Free
+            </a>
+            <a href="/login" class="btn btn-outline btn-lg text-base">
+              Sign In
+            </a>
+          </div>
+
+          <!-- Feature highlights -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="flex items-start gap-3 animate-fade-in-up stagger-1">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:var(--linkedin-blue-light)">
+                <svg width="20" height="20" fill="var(--linkedin-blue)" viewBox="0 0 24 24"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-sm text-gray-900">Smart Profiles</h3>
+                <p class="text-xs text-gray-500">AI-enhanced bios that stand out</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 animate-fade-in-up stagger-2">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#f0fdf4">
+                <svg width="20" height="20" fill="#057642" viewBox="0 0 24 24"><path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-sm text-gray-900">Skill Matching</h3>
+                <p class="text-xs text-gray-500">Connect with like-minded pros</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 animate-fade-in-up stagger-3">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#fef3c7">
+                <svg width="20" height="20" fill="#d97706" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-sm text-gray-900">AI-Powered</h3>
+                <p class="text-xs text-gray-500">Enhance posts with Groq AI</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right - Illustration -->
+        <div class="hidden lg:block animate-fade-in-up" style="animation-delay:0.2s;opacity:0">
+          <div class="relative">
+            <!-- Decorative cards -->
+            <div class="absolute -top-4 -left-4 w-72 h-48 rounded-2xl rotate-[-6deg] opacity-20" style="background:var(--accent-gradient)"></div>
+            <div class="absolute -bottom-4 -right-4 w-72 h-48 rounded-2xl rotate-[6deg] opacity-10" style="background:var(--accent-gradient)"></div>
+            
+            <!-- Main card -->
+            <div class="card-elevated p-8 rounded-2xl relative z-10">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 rounded-full default-avatar text-xl" style="background:var(--accent-gradient)">JD</div>
+                <div>
+                  <h3 class="font-bold text-lg text-gray-900">Jane Developer</h3>
+                  <p class="text-sm text-gray-500">Full Stack Engineer at Tech Co.</p>
+                </div>
+              </div>
+              <p class="text-gray-600 text-sm mb-4">Passionate about building user-friendly applications with modern technologies. Always learning, always growing. 🚀</p>
+              <div class="flex flex-wrap gap-2 mb-6">
+                <span class="skill-tag">JavaScript</span>
+                <span class="skill-tag">React</span>
+                <span class="skill-tag">Node.js</span>
+                <span class="skill-tag">Python</span>
+                <span class="skill-tag">MongoDB</span>
+              </div>
+              <div class="flex items-center gap-4 text-sm text-gray-400">
+                <span class="flex items-center gap-1">
+                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M6.633 10.5c.806 1.317 1.683 2.458 2.634 3.425.95.966 2.084 1.792 3.4 2.475a.75.75 0 00.57 0c1.316-.683 2.45-1.509 3.4-2.475.951-.967 1.828-2.108 2.634-3.425A20.07 20.07 0 0021 6.75c-2.15-.9-4.567-1.5-7.5-1.5S5.15 5.85 3 6.75c.483 1.3 1.05 2.517 1.633 3.75z"/></svg>
+                  342 connections
+                </span>
+                <span>📍 San Francisco</span>
+              </div>
+            </div>
+
+            <!-- Floating notification -->
+            <div class="absolute -right-6 top-8 card px-4 py-3 rounded-xl shadow-lg animate-fade-in-up z-20" style="animation-delay:0.8s;opacity:0;max-width:220px">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:#dcfce7">
+                  <svg width="16" height="16" fill="#057642" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                </div>
+                <span class="text-xs font-medium text-gray-700">Skill match found! 🎯</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 py-6 px-4">
+      <div class="max-w-6xl mx-auto text-center text-sm text-gray-500">
+        Mini LinkedIn &copy; 2026 — Built with ❤️ and AI
+      </div>
+    </footer>
+  </div>
+
+  <script src="/js/firebase-config.js"></script>
+  <script>
+    // Redirect to feed if already logged in
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) window.location.href = '/feed';
+    });
+  </script>
+</body>
+</html>

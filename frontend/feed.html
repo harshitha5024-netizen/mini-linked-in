@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Feed - Mini LinkedIn</title>
+  <meta name="description" content="Your personalized professional feed. Share posts, discover skills, and connect with professionals.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Navbar -->
+  <div id="navbar-container"></div>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- =========================================
+           LEFT SIDEBAR - Profile Summary
+           ========================================= -->
+      <aside class="lg:col-span-3">
+        <div class="card overflow-hidden animate-fade-in-up sticky top-20" id="profile-sidebar">
+          <!-- Banner -->
+          <div class="h-16" style="background:var(--accent-gradient)"></div>
+          <!-- Avatar -->
+          <div class="px-4 -mt-8">
+            <div id="sidebar-avatar" class="w-14 h-14 rounded-full border-2 border-white bg-white shadow-md overflow-hidden flex items-center justify-center" style="background:var(--accent-gradient);color:white;font-weight:700;font-size:18px">
+              ...
+            </div>
+          </div>
+          <!-- Info -->
+          <div class="p-4 pt-2">
+            <h3 class="font-semibold text-base text-gray-900" id="sidebar-name">Loading...</h3>
+            <p class="text-xs text-gray-500 mb-3" id="sidebar-headline"></p>
+            <div class="border-t border-gray-100 pt-3 text-xs text-gray-500">
+              <a href="/profile" class="flex items-center justify-between hover:text-blue-600 transition-colors py-1">
+                <span>Profile views</span>
+                <span class="font-semibold text-blue-600">—</span>
+              </a>
+              <a href="/profile" class="flex items-center justify-between hover:text-blue-600 transition-colors py-1">
+                <span>Post impressions</span>
+                <span class="font-semibold text-blue-600">—</span>
+              </a>
+            </div>
+          </div>
+          <!-- Skills -->
+          <div class="border-t border-gray-100 p-4" id="sidebar-skills-section" style="display:none">
+            <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">My Skills</h4>
+            <div class="flex flex-wrap gap-1" id="sidebar-skills"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- =========================================
+           CENTER - Feed
+           ========================================= -->
+      <div class="lg:col-span-6">
+
+        <!-- Create Post Card -->
+        <div class="card p-4 mb-4 animate-fade-in-up" id="create-post-card">
+          <div class="flex items-center gap-3 mb-3">
+            <div id="create-post-avatar" class="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden"></div>
+            <button onclick="openCreatePostModal()" class="flex-1 text-left px-4 py-3 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-100 transition text-sm" id="create-post-trigger">
+              What's on your mind?
+            </button>
+          </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-gray-100">
+            <button onclick="openCreatePostModal()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-600 transition">
+              <svg width="20" height="20" fill="#378fe9" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a2.5 2.5 0 110 5 2.5 2.5 0 010-5zM5 19l3.5-4.5 2.5 3L14.5 13l4.5 6H5z"/></svg>
+              Photo
+            </button>
+            <button onclick="openCreatePostModal()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-600 transition">
+              <svg width="20" height="20" fill="#c37d16" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-4 14H9v-2h6v2zm2-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+              Article
+            </button>
+          </div>
+        </div>
+
+        <!-- Feed Posts -->
+        <div id="feed-container">
+          <!-- Skeleton loading -->
+          <div id="feed-skeleton"></div>
+        </div>
+
+        <!-- Load More -->
+        <div class="text-center py-6" id="load-more-container" style="display:none">
+          <button onclick="loadMorePosts()" class="btn btn-outline" id="load-more-btn">
+            Load More Posts
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div class="card p-12 text-center" id="empty-feed" style="display:none">
+          <div class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style="background:var(--linkedin-blue-light)">
+            <svg width="32" height="32" fill="var(--linkedin-blue)" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-4 14H9v-2h6v2zm2-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">No posts yet</h3>
+          <p class="text-sm text-gray-500 mb-4">Be the first to share something with the community!</p>
+          <button onclick="openCreatePostModal()" class="btn btn-primary">Create a Post</button>
+        </div>
+      </div>
+
+      <!-- =========================================
+           RIGHT SIDEBAR - Suggestions
+           ========================================= -->
+      <aside class="lg:col-span-3">
+        <div class="card p-4 animate-fade-in-up sticky top-20" style="animation-delay:0.1s;opacity:0" id="suggestions-card">
+          <h3 class="font-semibold text-sm text-gray-900 mb-3 flex items-center gap-2">
+            <svg width="16" height="16" fill="var(--linkedin-green)" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            Skill Match Suggestions
+          </h3>
+          <div id="suggestions-list">
+            <div class="text-center py-4">
+              <div class="spinner mx-auto mb-2"></div>
+              <p class="text-xs text-gray-400">Finding matches...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trending Skills -->
+        <div class="card p-4 mt-4 animate-fade-in-up" style="animation-delay:0.2s;opacity:0">
+          <h3 class="font-semibold text-sm text-gray-900 mb-3">🔥 Popular Skills</h3>
+          <div class="flex flex-wrap gap-1.5" id="trending-skills">
+            <span class="skill-tag text-xs">JavaScript</span>
+            <span class="skill-tag text-xs">Python</span>
+            <span class="skill-tag text-xs">React</span>
+            <span class="skill-tag text-xs">AI</span>
+            <span class="skill-tag text-xs">Node.js</span>
+            <span class="skill-tag text-xs">MongoDB</span>
+            <span class="skill-tag text-xs">TypeScript</span>
+            <span class="skill-tag text-xs">Docker</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- =========================================
+       CREATE POST MODAL
+       ========================================= -->
+  <div id="create-post-modal" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="font-semibold text-lg">Create a Post</h2>
+        <button onclick="closeCreatePostModal()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition" id="close-modal-btn">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Author Info -->
+        <div class="flex items-center gap-3 mb-4">
+          <div id="modal-avatar" class="w-12 h-12 rounded-full overflow-hidden"></div>
+          <div>
+            <p class="font-semibold text-sm" id="modal-author-name">Your Name</p>
+            <p class="text-xs text-gray-500" id="modal-author-headline">Your Headline</p>
+          </div>
+        </div>
+
+        <!-- Caption -->
+        <textarea id="post-caption" class="w-full border-none outline-none resize-none text-base text-gray-800 placeholder-gray-400 mb-4" style="min-height:120px" placeholder="What do you want to talk about?" maxlength="3000"></textarea>
+
+        <!-- AI Enhance Button -->
+        <button onclick="enhanceCaption()" class="btn btn-ai btn-sm mb-4" id="enhance-caption-btn">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+          <span>Enhance with AI</span>
+        </button>
+
+        <!-- Image Upload -->
+        <div class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-blue-300 transition cursor-pointer" id="image-upload-area" onclick="document.getElementById('post-image').click()">
+          <input type="file" id="post-image" accept="image/*" class="hidden" onchange="previewPostImage(event)">
+          <div id="image-preview-container" style="display:none">
+            <img id="image-preview" class="max-h-64 mx-auto rounded-lg mb-2">
+            <button onclick="removePostImage(event)" class="btn btn-ghost btn-sm text-red-500" id="remove-image-btn">Remove Image</button>
+          </div>
+          <div id="image-placeholder">
+            <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="mx-auto mb-2 text-gray-400"><path d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+            <p class="text-sm text-gray-400">Click to add a photo</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeCreatePostModal()" class="btn btn-ghost">Cancel</button>
+        <button onclick="submitPost()" class="btn btn-primary" id="submit-post-btn">
+          <span id="post-submit-text">Post</span>
+          <div class="spinner spinner-sm" id="post-submit-spinner" style="display:none;border-top-color:white;border-color:rgba(255,255,255,0.3)"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script>
+    // ============================================
+    // State
+    // ============================================
+    let feedPosts = [];
+    let currentPage = 1;
+    let totalPages = 1;
+
+    // ============================================
+    // Initialize Feed Page
+    // ============================================
+    async function initFeed() {
+      // Insert navbar
+      document.getElementById('navbar-container').innerHTML = generateNavbar('feed');
+
+      // Show skeleton loading
+      document.getElementById('feed-skeleton').innerHTML = skeletonPosts(3);
+
+      // Check authentication
+      const user = await checkAuth();
+      if (!user) return;
+
+      // Update sidebar
+      updateSidebar(user);
+      updateCreatePostCard(user);
+
+      // Load feed
+      await loadPosts();
+
+      // Load suggestions
+      loadSuggestions(user._id);
+
+      // Update notification badge
+      updateNotificationBadge();
+    }
+
+    /**
+     * Update the left sidebar with user info
+     */
+    function updateSidebar(user) {
+      document.getElementById('sidebar-name').textContent = user.name;
+      document.getElementById('sidebar-headline').textContent = user.headline || 'Add a headline';
+
+      const avatarEl = document.getElementById('sidebar-avatar');
+      if (user.profileImage) {
+        avatarEl.innerHTML = `<img src="${user.profileImage}" alt="${user.name}" class="w-full h-full object-cover">`;
+        avatarEl.style.background = 'white';
+      } else {
+        avatarEl.textContent = getInitials(user.name);
+      }
+
+      // Show skills
+      if (user.skills && user.skills.length > 0) {
+        document.getElementById('sidebar-skills-section').style.display = 'block';
+        document.getElementById('sidebar-skills').innerHTML = user.skills
+          .map(s => `<span class="skill-tag text-xs">${escapeHtml(s)}</span>`)
+          .join('');
+      }
+    }
+
+    /**
+     * Update create post card avatars
+     */
+    function updateCreatePostCard(user) {
+      const avatarHTML = getAvatarHTML(user, 'profile-avatar-sm');
+      document.getElementById('create-post-avatar').innerHTML = avatarHTML;
+      document.getElementById('modal-avatar').innerHTML = avatarHTML;
+      document.getElementById('modal-author-name').textContent = user.name;
+      document.getElementById('modal-author-headline').textContent = user.headline || '';
+    }
+
+    // ============================================
+    // Posts
+    // ============================================
+
+    /**
+     * Load posts from the API
+     */
+    async function loadPosts() {
+      try {
+        const data = await api.getPosts(currentPage);
+
+        // Remove skeleton
+        document.getElementById('feed-skeleton').innerHTML = '';
+
+        feedPosts = data.posts;
+        totalPages = data.totalPages;
+
+        if (feedPosts.length === 0) {
+          document.getElementById('empty-feed').style.display = 'block';
+          return;
+        }
+
+        document.getElementById('empty-feed').style.display = 'none';
+        renderPosts(feedPosts);
+
+        // Show load more if more pages
+        if (currentPage < totalPages) {
+          document.getElementById('load-more-container').style.display = 'block';
+        }
+      } catch (error) {
+        document.getElementById('feed-skeleton').innerHTML = '';
+        showToast('Failed to load posts', 'error');
+      }
+    }
+
+    /**
+     * Load more posts (next page)
+     */
+    async function loadMorePosts() {
+      currentPage++;
+      try {
+        const data = await api.getPosts(currentPage);
+        feedPosts = [...feedPosts, ...data.posts];
+        renderPosts(data.posts, true);
+
+        if (currentPage >= totalPages) {
+          document.getElementById('load-more-container').style.display = 'none';
+        }
+      } catch (error) {
+        showToast('Failed to load more posts', 'error');
+        currentPage--;
+      }
+    }
+
+    /**
+     * Render posts to the feed
+     */
+    function renderPosts(posts, append = false) {
+      const container = document.getElementById('feed-container');
+      const html = posts.map((post, i) => createPostHTML(post, i)).join('');
+
+      if (append) {
+        container.insertAdjacentHTML('beforeend', html);
+      } else {
+        container.innerHTML = html;
+      }
+    }
+
+    /**
+     * Generate HTML for a single post
+     */
+    function createPostHTML(post, index = 0) {
+      const author = post.authorId || {};
+      const isLiked = currentUser && post.likes.some(id => id === currentUser._id || id._id === currentUser._id);
+      const likesCount = post.likes.length;
+      const commentsCount = post.comments.length;
+      const delay = Math.min(index * 0.05, 0.3);
+
+      return `
+      <div class="card post-card mb-4 animate-fade-in-up" style="animation-delay:${delay}s;opacity:0" id="post-${post._id}">
+        <!-- Post Header -->
+        <div class="flex items-start gap-3 p-4 pb-2">
+          <a href="/profile?id=${author._id}" class="flex-shrink-0">
+            ${getAvatarHTML(author, 'profile-avatar-sm')}
+          </a>
+          <div class="flex-1 min-w-0">
+            <a href="/profile?id=${author._id}" class="font-semibold text-sm text-gray-900 hover:text-blue-600 hover:underline transition">${escapeHtml(author.name)}</a>
+            <p class="text-xs text-gray-500 truncate">${escapeHtml(author.headline || '')}</p>
+            <p class="text-xs text-gray-400">${timeAgo(post.createdAt)}</p>
+          </div>
+        </div>
+
+        <!-- Caption -->
+        <div class="px-4 pb-3">
+          <p class="text-sm text-gray-800 whitespace-pre-line">${escapeHtml(post.caption)}</p>
+        </div>
+
+        <!-- Detected Skills -->
+        ${post.skillsDetected && post.skillsDetected.length > 0 ? `
+          <div class="px-4 pb-3 flex flex-wrap gap-1">
+            ${post.skillsDetected.map(s => `<span class="skill-tag text-xs">${escapeHtml(s)}</span>`).join('')}
+          </div>
+        ` : ''}
+
+        <!-- Post Image -->
+        ${post.imageUrl ? `
+          <div class="border-t border-b border-gray-100">
+            <img src="${post.imageUrl}" alt="Post image" class="post-image" loading="lazy">
+          </div>
+        ` : ''}
+
+        <!-- Stats -->
+        <div class="px-4 py-2 flex items-center justify-between text-xs text-gray-500">
+          <span id="likes-count-${post._id}">${likesCount > 0 ? `👍 ${likesCount} like${likesCount !== 1 ? 's' : ''}` : ''}</span>
+          <span>${commentsCount > 0 ? `${commentsCount} comment${commentsCount !== 1 ? 's' : ''}` : ''}</span>
+        </div>
+
+        <!-- Actions -->
+        <div class="post-actions mx-4">
+          <button class="post-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post._id}')" id="like-btn-${post._id}">
+            <svg width="18" height="18" fill="${isLiked ? '#dc2626' : 'none'}" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6.633 10.5c.806 1.317 1.683 2.458 2.634 3.425.95.966 2.084 1.792 3.4 2.475a.75.75 0 00.57 0c1.316-.683 2.45-1.509 3.4-2.475.951-.967 1.828-2.108 2.634-3.425A20.07 20.07 0 0021 6.75c-2.15-.9-4.567-1.5-7.5-1.5S5.15 5.85 3 6.75c.483 1.3 1.05 2.517 1.633 3.75z"/></svg>
+            <span>${isLiked ? 'Liked' : 'Like'}</span>
+          </button>
+          <button class="post-action-btn" onclick="toggleComments('${post._id}')">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/></svg>
+            <span>Comment</span>
+          </button>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="px-4 py-3" id="comments-section-${post._id}" style="display:${commentsCount > 0 ? 'block' : 'none'}">
+          <!-- Existing Comments -->
+          <div id="comments-list-${post._id}">
+            ${post.comments.map(c => createCommentHTML(c)).join('')}
+          </div>
+
+          <!-- Add Comment -->
+          <div class="flex items-start gap-2 mt-3">
+            <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 mt-0.5" id="comment-avatar-${post._id}"></div>
+            <div class="flex-1 flex items-center gap-2">
+              <input type="text" class="input text-sm py-2" placeholder="Add a comment..." id="comment-input-${post._id}" onkeypress="if(event.key==='Enter')addComment('${post._id}')">
+              <button onclick="addComment('${post._id}')" class="btn btn-primary btn-sm flex-shrink-0" id="comment-submit-${post._id}">Post</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    /**
+     * Generate HTML for a comment
+     */
+    function createCommentHTML(comment) {
+      const user = comment.userId || {};
+      return `
+      <div class="flex items-start gap-2 mb-3 animate-fade-in">
+        <a href="/profile?id=${user._id}" class="flex-shrink-0">
+          ${getAvatarHTML(user, 'profile-avatar-sm')}
+        </a>
+        <div class="bg-gray-50 rounded-xl px-3 py-2 flex-1">
+          <a href="/profile?id=${user._id}" class="font-semibold text-xs text-gray-900 hover:underline">${escapeHtml(user.name || 'User')}</a>
+          <p class="text-sm text-gray-700">${escapeHtml(comment.text)}</p>
+          <span class="text-xs text-gray-400">${timeAgo(comment.createdAt)}</span>
+        </div>
+      </div>`;
+    }
+
+    // ============================================
+    // Post Interactions
+    // ============================================
+
+    /**
+     * Toggle like on a post
+     */
+    async function toggleLike(postId) {
+      try {
+        const btn = document.getElementById(`like-btn-${postId}`);
+        const result = await api.toggleLike(postId);
+
+        // Update button state
+        if (result.isLiked) {
+          btn.classList.add('liked');
+          btn.querySelector('svg').setAttribute('fill', '#dc2626');
+          btn.querySelector('span').textContent = 'Liked';
+          btn.classList.add('animate-heart');
+          setTimeout(() => btn.classList.remove('animate-heart'), 800);
+        } else {
+          btn.classList.remove('liked');
+          btn.querySelector('svg').setAttribute('fill', 'none');
+          btn.querySelector('span').textContent = 'Like';
+        }
+
+        // Update likes count
+        const countEl = document.getElementById(`likes-count-${postId}`);
+        countEl.textContent = result.likesCount > 0 ? `👍 ${result.likesCount} like${result.likesCount !== 1 ? 's' : ''}` : '';
+
+      } catch (error) {
+        showToast('Failed to update like', 'error');
+      }
+    }
+
+    /**
+     * Toggle comments section visibility
+     */
+    function toggleComments(postId) {
+      const section = document.getElementById(`comments-section-${postId}`);
+      const isVisible = section.style.display !== 'none';
+      section.style.display = isVisible ? 'none' : 'block';
+
+      if (!isVisible) {
+        // Set comment avatar
+        const avatarContainer = document.getElementById(`comment-avatar-${postId}`);
+        if (currentUser && avatarContainer.innerHTML === '') {
+          avatarContainer.innerHTML = getAvatarHTML(currentUser, 'profile-avatar-sm');
+        }
+        // Focus the input
+        document.getElementById(`comment-input-${postId}`).focus();
+      }
+    }
+
+    /**
+     * Add a comment to a post
+     */
+    async function addComment(postId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      const text = input.value.trim();
+
+      if (!text) return;
+
+      const submitBtn = document.getElementById(`comment-submit-${postId}`);
+      submitBtn.disabled = true;
+
+      try {
+        const updatedPost = await api.addComment(postId, text);
+        input.value = '';
+
+        // Re-render comments
+        const commentsList = document.getElementById(`comments-list-${postId}`);
+        commentsList.innerHTML = updatedPost.comments.map(c => createCommentHTML(c)).join('');
+
+        showToast('Comment added!', 'success');
+      } catch (error) {
+        showToast('Failed to add comment', 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    }
+
+    // ============================================
+    // Create Post Modal
+    // ============================================
+
+    function openCreatePostModal() {
+      document.getElementById('create-post-modal').style.display = 'flex';
+      document.getElementById('post-caption').focus();
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeCreatePostModal() {
+      document.getElementById('create-post-modal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    function previewPostImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('image-preview').src = e.target.result;
+        document.getElementById('image-preview-container').style.display = 'block';
+        document.getElementById('image-placeholder').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removePostImage(event) {
+      event.stopPropagation();
+      document.getElementById('post-image').value = '';
+      document.getElementById('image-preview-container').style.display = 'none';
+      document.getElementById('image-placeholder').style.display = 'block';
+    }
+
+    /**
+     * Submit a new post
+     */
+    async function submitPost() {
+      const caption = document.getElementById('post-caption').value.trim();
+      const imageFile = document.getElementById('post-image').files[0];
+
+      if (!caption) {
+        showToast('Please write something before posting', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-post-btn');
+      const submitText = document.getElementById('post-submit-text');
+      const submitSpinner = document.getElementById('post-submit-spinner');
+
+      submitBtn.disabled = true;
+      submitText.textContent = 'Posting...';
+      submitSpinner.style.display = 'inline-block';
+
+      try {
+        const formData = new FormData();
+        formData.append('caption', caption);
+        if (imageFile) {
+          formData.append('image', imageFile);
+        }
+
+        const newPost = await api.createPost(formData);
+
+        // Close modal and reset
+        closeCreatePostModal();
+        document.getElementById('post-caption').value = '';
+        removePostImage(new Event('click'));
+
+        // Add post to top of feed
+        const container = document.getElementById('feed-container');
+        container.insertAdjacentHTML('afterbegin', createPostHTML(newPost, 0));
+        document.getElementById('empty-feed').style.display = 'none';
+
+        showToast('Post published! 🎉', 'success');
+      } catch (error) {
+        showToast('Failed to create post', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = 'Post';
+        submitSpinner.style.display = 'none';
+      }
+    }
+
+    // ============================================
+    // AI Caption Enhancement
+    // ============================================
+
+    async function enhanceCaption() {
+      const captionEl = document.getElementById('post-caption');
+      const caption = captionEl.value.trim();
+
+      if (!caption) {
+        showToast('Write something first, then enhance it', 'info');
+        return;
+      }
+
+      const btn = document.getElementById('enhance-caption-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner spinner-sm" style="border-top-color:white;border-color:rgba(255,255,255,0.3)"></div> Enhancing...';
+
+      try {
+        const result = await api.enhanceCaption(caption);
+        captionEl.value = result.enhanced;
+        showToast('Caption enhanced by AI! ✨', 'success');
+      } catch (error) {
+        showToast('AI enhancement failed. Check your Groq API key.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg><span>Enhance with AI</span>';
+      }
+    }
+
+    // ============================================
+    // Skill Match Suggestions
+    // ============================================
+
+    async function loadSuggestions(userId) {
+      try {
+        const suggestions = await api.getSuggestions(userId);
+        const container = document.getElementById('suggestions-list');
+
+        if (suggestions.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-4">
+              <p class="text-xs text-gray-400">Add skills to your profile to see suggestions</p>
+              <a href="/edit-profile" class="btn btn-outline btn-sm mt-2">Add Skills</a>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = suggestions.map(s => `
+          <a href="/profile?id=${s._id}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition mb-1 no-underline">
+            <div class="flex-shrink-0">
+              ${getAvatarHTML(s, 'profile-avatar-sm')}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-xs text-gray-900 truncate">${escapeHtml(s.name)}</p>
+              <p class="text-xs text-gray-500 truncate">${escapeHtml(s.headline || '')}</p>
+              <div class="flex flex-wrap gap-1 mt-1">
+                ${s.matchingSkills.map(ms => `<span class="skill-tag skill-tag-match" style="font-size:10px;padding:1px 6px">${escapeHtml(ms)}</span>`).join('')}
+              </div>
+            </div>
+          </a>
+        `).join('');
+
+      } catch (error) {
+        document.getElementById('suggestions-list').innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Could not load suggestions</p>';
+      }
+    }
+
+    // ============================================
+    // Close modal on escape key / outside click
+    // ============================================
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeCreatePostModal();
+    });
+
+    document.getElementById('create-post-modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('create-post-modal')) {
+        closeCreatePostModal();
+      }
+    });
+
+    // ============================================
+    // Initialize
+    // ============================================
+    initFeed();
+  </script>
+</body>
+</html>

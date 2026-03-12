@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile - Mini LinkedIn</title>
+  <meta name="description" content="Edit your professional profile on Mini LinkedIn.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Navbar -->
+  <div id="navbar-container"></div>
+
+  <!-- Edit Profile Content -->
+  <main class="max-w-2xl mx-auto px-4 py-6">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-6 animate-fade-in-up">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Edit Profile</h1>
+        <p class="text-sm text-gray-500 mt-1">Keep your profile up to date for better connections</p>
+      </div>
+      <a href="/profile" class="btn btn-ghost btn-sm">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        Cancel
+      </a>
+    </div>
+
+    <form id="edit-profile-form" class="space-y-6">
+      <!-- Profile Photo Section -->
+      <div class="card p-6 animate-fade-in-up stagger-1">
+        <h2 class="text-base font-semibold text-gray-900 mb-4">Profile Photo</h2>
+        <div class="flex items-center gap-6">
+          <div id="edit-avatar" class="w-24 h-24 rounded-full border-3 border-white shadow-lg overflow-hidden flex items-center justify-center flex-shrink-0" style="background:var(--accent-gradient);color:white;font-weight:700;font-size:28px">
+            ...
+          </div>
+          <div>
+            <input type="file" id="profile-image-input" accept="image/*" class="hidden" onchange="previewProfileImage(event)">
+            <button type="button" onclick="document.getElementById('profile-image-input').click()" class="btn btn-outline btn-sm mb-2">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+              Change Photo
+            </button>
+            <p class="text-xs text-gray-400">JPG, PNG or GIF. Max 5MB.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Basic Info -->
+      <div class="card p-6 animate-fade-in-up stagger-2">
+        <h2 class="text-base font-semibold text-gray-900 mb-4">Basic Information</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="input-label" for="name">Full Name *</label>
+            <input type="text" id="name" class="input" placeholder="Your full name" required>
+          </div>
+
+          <div>
+            <label class="input-label" for="headline">Headline</label>
+            <input type="text" id="headline" class="input" placeholder="e.g., Full Stack Developer at Tech Co." maxlength="200">
+            <p class="text-xs text-gray-400 mt-1">Appears below your name on your profile</p>
+          </div>
+
+          <div>
+            <label class="input-label" for="location">Location</label>
+            <input type="text" id="location" class="input" placeholder="e.g., San Francisco, CA">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bio / About -->
+      <div class="card p-6 animate-fade-in-up stagger-3">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-semibold text-gray-900">About</h2>
+          <button type="button" onclick="enhanceBio()" class="btn btn-ai btn-sm" id="enhance-bio-btn">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+            Improve with AI
+          </button>
+        </div>
+        <textarea id="bio" class="input textarea" placeholder="Write a brief summary about yourself, your skills, and your goals..." maxlength="2000" rows="5"></textarea>
+        <p class="text-xs text-gray-400 mt-1"><span id="bio-char-count">0</span>/2000 characters</p>
+      </div>
+
+      <!-- Skills -->
+      <div class="card p-6 animate-fade-in-up stagger-4">
+        <h2 class="text-base font-semibold text-gray-900 mb-2">Skills</h2>
+        <p class="text-xs text-gray-500 mb-4">Add skills to get matched with similar professionals</p>
+
+        <div class="flex items-center gap-2 mb-4">
+          <input type="text" id="skill-input" class="input" placeholder="e.g., JavaScript, Python, React..." onkeypress="if(event.key==='Enter'){event.preventDefault();addSkill()}">
+          <button type="button" onclick="addSkill()" class="btn btn-primary btn-sm flex-shrink-0">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Add
+          </button>
+        </div>
+
+        <div class="flex flex-wrap gap-2" id="skills-container">
+          <!-- Skills will be rendered here -->
+        </div>
+
+        <!-- Quick add suggestions -->
+        <div class="mt-3 pt-3 border-t border-gray-100">
+          <p class="text-xs text-gray-400 mb-2">Quick add:</p>
+          <div class="flex flex-wrap gap-1" id="quick-skills">
+            <button type="button" onclick="quickAddSkill('JavaScript')" class="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 transition">+ JavaScript</button>
+            <button type="button" onclick="quickAddSkill('Python')" class="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 transition">+ Python</button>
+            <button type="button" onclick="quickAddSkill('React')" class="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 transition">+ React</button>
+            <button type="button" onclick="quickAddSkill('Node.js')" class="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 transition">+ Node.js</button>
+            <button type="button" onclick="quickAddSkill('MongoDB')" class="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 transition">+ MongoDB</button>
+            <button type="button" onclick="quickAddSkill('TypeScript')" class="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 transition">+ TypeScript</button>
+            <button type="button" onclick="quickAddSkill('Docker')" class="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 transition">+ Docker</button>
+            <button type="button" onclick="quickAddSkill('AWS')" class="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 transition">+ AWS</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Experience -->
+      <div class="card p-6 animate-fade-in-up stagger-5">
+        <h2 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+          Experience
+        </h2>
+        <textarea id="experience" class="input textarea" placeholder="Describe your work experience..." rows="4"></textarea>
+      </div>
+
+      <!-- Education -->
+      <div class="card p-6 animate-fade-in-up" style="animation-delay:0.3s;opacity:0">
+        <h2 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/></svg>
+          Education
+        </h2>
+        <textarea id="education" class="input textarea" placeholder="Describe your educational background..." rows="4"></textarea>
+      </div>
+
+      <!-- Save Button -->
+      <div class="flex items-center justify-end gap-3 pb-8 animate-fade-in-up" style="animation-delay:0.35s;opacity:0">
+        <a href="/profile" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary btn-lg" id="save-btn">
+          <span id="save-text">Save Changes</span>
+          <div class="spinner spinner-sm" id="save-spinner" style="display:none;border-top-color:white;border-color:rgba(255,255,255,0.3)"></div>
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <!-- Scripts -->
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script>
+    // Skills state
+    let skills = [];
+
+    // ============================================
+    // Initialize Edit Profile
+    // ============================================
+    async function initEditProfile() {
+      document.getElementById('navbar-container').innerHTML = generateNavbar('profile');
+
+      const user = await checkAuth();
+      if (!user) return;
+
+      // Populate form fields
+      document.getElementById('name').value = user.name || '';
+      document.getElementById('headline').value = user.headline || '';
+      document.getElementById('location').value = user.location || '';
+      document.getElementById('bio').value = user.bio || '';
+      document.getElementById('experience').value = user.experience || '';
+      document.getElementById('education').value = user.education || '';
+
+      // Set avatar
+      const avatarEl = document.getElementById('edit-avatar');
+      if (user.profileImage) {
+        avatarEl.innerHTML = `<img src="${user.profileImage}" alt="${user.name}" class="w-full h-full object-cover">`;
+        avatarEl.style.background = 'white';
+      } else {
+        avatarEl.textContent = getInitials(user.name);
+      }
+
+      // Set skills
+      skills = user.skills || [];
+      renderSkills();
+
+      // Bio character count
+      updateBioCharCount();
+
+      // Update notification badge
+      updateNotificationBadge();
+    }
+
+    // ============================================
+    // Profile Image Preview
+    // ============================================
+    function previewProfileImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Image must be less than 5MB', 'error');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const avatarEl = document.getElementById('edit-avatar');
+        avatarEl.innerHTML = `<img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover">`;
+        avatarEl.style.background = 'white';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ============================================
+    // Skills Management
+    // ============================================
+    function renderSkills() {
+      const container = document.getElementById('skills-container');
+      if (skills.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400">No skills added yet</p>';
+        return;
+      }
+      container.innerHTML = skills.map((skill, i) => `
+        <span class="skill-tag flex items-center gap-1">
+          ${escapeHtml(skill)}
+          <button type="button" onclick="removeSkill(${i})" class="ml-1 hover:text-red-500 transition" title="Remove skill">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </span>
+      `).join('');
+    }
+
+    function addSkill() {
+      const input = document.getElementById('skill-input');
+      const skill = input.value.trim();
+
+      if (!skill) return;
+      if (skills.some(s => s.toLowerCase() === skill.toLowerCase())) {
+        showToast('Skill already added', 'info');
+        return;
+      }
+
+      skills.push(skill);
+      renderSkills();
+      input.value = '';
+      input.focus();
+    }
+
+    function quickAddSkill(skill) {
+      if (skills.some(s => s.toLowerCase() === skill.toLowerCase())) {
+        showToast('Skill already added', 'info');
+        return;
+      }
+      skills.push(skill);
+      renderSkills();
+    }
+
+    function removeSkill(index) {
+      skills.splice(index, 1);
+      renderSkills();
+    }
+
+    // ============================================
+    // Bio Character Count
+    // ============================================
+    function updateBioCharCount() {
+      const bio = document.getElementById('bio');
+      const count = document.getElementById('bio-char-count');
+      count.textContent = bio.value.length;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('bio')?.addEventListener('input', updateBioCharCount);
+    });
+
+    // ============================================
+    // AI Bio Enhancement
+    // ============================================
+    async function enhanceBio() {
+      const bioEl = document.getElementById('bio');
+      const bio = bioEl.value.trim();
+
+      if (!bio) {
+        showToast('Write your bio first, then enhance it with AI', 'info');
+        return;
+      }
+
+      const btn = document.getElementById('enhance-bio-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner spinner-sm" style="border-top-color:white;border-color:rgba(255,255,255,0.3)"></div> Enhancing...';
+
+      try {
+        const result = await api.enhanceBio(bio);
+        bioEl.value = result.enhanced;
+        updateBioCharCount();
+        showToast('Bio enhanced by AI! ✨', 'success');
+      } catch (error) {
+        showToast('AI enhancement failed. Check your Groq API key.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg> Improve with AI';
+      }
+    }
+
+    // ============================================
+    // Save Profile
+    // ============================================
+    document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const saveBtn = document.getElementById('save-btn');
+      const saveText = document.getElementById('save-text');
+      const saveSpinner = document.getElementById('save-spinner');
+
+      saveBtn.disabled = true;
+      saveText.textContent = 'Saving...';
+      saveSpinner.style.display = 'inline-block';
+
+      try {
+        const imageFile = document.getElementById('profile-image-input').files[0];
+
+        // Use FormData if there's an image, otherwise JSON
+        if (imageFile) {
+          const formData = new FormData();
+          formData.append('name', document.getElementById('name').value.trim());
+          formData.append('headline', document.getElementById('headline').value.trim());
+          formData.append('location', document.getElementById('location').value.trim());
+          formData.append('bio', document.getElementById('bio').value.trim());
+          formData.append('experience', document.getElementById('experience').value.trim());
+          formData.append('education', document.getElementById('education').value.trim());
+          formData.append('profileImage', imageFile);
+          // Skills must be sent as JSON string for FormData
+          skills.forEach(s => formData.append('skills', s));
+
+          await api.updateUser(currentUser._id, formData);
+        } else {
+          await api.updateUser(currentUser._id, {
+            name: document.getElementById('name').value.trim(),
+            headline: document.getElementById('headline').value.trim(),
+            location: document.getElementById('location').value.trim(),
+            bio: document.getElementById('bio').value.trim(),
+            skills: skills,
+            experience: document.getElementById('experience').value.trim(),
+            education: document.getElementById('education').value.trim()
+          });
+        }
+
+        showToast('Profile saved successfully! 🎉', 'success');
+        setTimeout(() => window.location.href = '/profile', 1500);
+
+      } catch (error) {
+        showToast('Failed to save profile', 'error');
+        saveBtn.disabled = false;
+        saveText.textContent = 'Save Changes';
+        saveSpinner.style.display = 'none';
+      }
+    });
+
+    initEditProfile();
+  </script>
+</body>
+</html>

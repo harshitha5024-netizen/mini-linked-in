@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - Mini LinkedIn</title>
+  <meta name="description" content="Sign in to Mini LinkedIn to access your professional network and AI-powered features.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <!-- Logo -->
+      <a href="/" class="block text-center no-underline mb-2">
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:var(--accent-gradient)">
+            <svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+          </div>
+        </div>
+        <h1 class="auth-logo">Sign In</h1>
+      </a>
+      <p class="auth-subtitle">Welcome back! Access your professional network.</p>
+
+      <!-- Login Form -->
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="input-label" for="email">Email Address</label>
+          <input type="email" id="email" class="input" placeholder="you@example.com" required autocomplete="email">
+        </div>
+
+        <div>
+          <label class="input-label" for="password">Password</label>
+          <input type="password" id="password" class="input" placeholder="Enter your password" required autocomplete="current-password" minlength="6">
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200 animate-fade-in-down"></div>
+
+        <button type="submit" class="btn btn-primary w-full btn-lg" id="login-btn">
+          <span id="login-text">Sign In</span>
+          <div class="spinner spinner-sm" id="login-spinner" style="display:none;border-top-color:white;border-color:rgba(255,255,255,0.3)"></div>
+        </button>
+      </form>
+
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-500">
+          New to Mini LinkedIn? 
+          <a href="/signup" class="font-semibold" style="color:var(--linkedin-blue)">Join now</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/firebase-config.js"></script>
+  <script>
+    // Redirect if already logged in
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) window.location.href = '/feed';
+    });
+
+    // Handle login form submission
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('error-message');
+      const loginBtn = document.getElementById('login-btn');
+      const loginText = document.getElementById('login-text');
+      const loginSpinner = document.getElementById('login-spinner');
+
+      // Show loading state
+      loginBtn.disabled = true;
+      loginText.textContent = 'Signing in...';
+      loginSpinner.style.display = 'inline-block';
+      errorDiv.classList.add('hidden');
+
+      try {
+        // Sign in with Firebase
+        await auth.signInWithEmailAndPassword(email, password);
+        
+        // Redirect to feed on success
+        window.location.href = '/feed';
+      } catch (error) {
+        // Show error message
+        let message = 'Sign in failed. Please try again.';
+        
+        switch (error.code) {
+          case 'auth/user-not-found':
+            message = 'No account found with this email. Please sign up first.';
+            break;
+          case 'auth/wrong-password':
+            message = 'Incorrect password. Please try again.';
+            break;
+          case 'auth/invalid-email':
+            message = 'Please enter a valid email address.';
+            break;
+          case 'auth/too-many-requests':
+            message = 'Too many failed attempts. Please try again later.';
+            break;
+          case 'auth/invalid-credential':
+            message = 'Invalid email or password. Please check and try again.';
+            break;
+        }
+
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+
+        // Reset button
+        loginBtn.disabled = false;
+        loginText.textContent = 'Sign In';
+        loginSpinner.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

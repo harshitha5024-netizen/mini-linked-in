@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications - Mini LinkedIn</title>
+  <meta name="description" content="View your skill match notifications and activity updates on Mini LinkedIn.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Navbar -->
+  <div id="navbar-container"></div>
+
+  <!-- Notifications -->
+  <main class="max-w-2xl mx-auto px-4 py-6">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-6 animate-fade-in-up">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Notifications</h1>
+        <p class="text-sm text-gray-500 mt-1" id="notif-subtitle">Loading...</p>
+      </div>
+      <button onclick="markAllAsRead()" class="btn btn-ghost btn-sm" id="mark-read-btn" style="display:none">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Mark all read
+      </button>
+    </div>
+
+    <!-- Notification Filters -->
+    <div class="flex items-center gap-2 mb-4 animate-fade-in-up" style="animation-delay:0.05s;opacity:0">
+      <button onclick="filterNotifications('all')" class="btn btn-sm filter-btn active" id="filter-all">All</button>
+      <button onclick="filterNotifications('skill_match')" class="btn btn-sm btn-ghost filter-btn" id="filter-skill_match">
+        <span class="w-2 h-2 rounded-full" style="background:var(--linkedin-green)"></span>
+        Skill Matches
+      </button>
+      <button onclick="filterNotifications('like')" class="btn btn-sm btn-ghost filter-btn" id="filter-like">
+        <span class="w-2 h-2 rounded-full bg-red-400"></span>
+        Likes
+      </button>
+      <button onclick="filterNotifications('comment')" class="btn btn-sm btn-ghost filter-btn" id="filter-comment">
+        <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+        Comments
+      </button>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="card overflow-hidden animate-fade-in-up" style="animation-delay:0.1s;opacity:0" id="notifications-card">
+      <!-- Loading -->
+      <div id="notif-loading" class="p-8 text-center">
+        <div class="spinner mx-auto mb-3"></div>
+        <p class="text-sm text-gray-400">Loading notifications...</p>
+      </div>
+
+      <!-- Notifications will be rendered here -->
+      <div id="notifications-list" style="display:none"></div>
+
+      <!-- Empty State -->
+      <div id="notif-empty" style="display:none" class="p-12 text-center">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style="background:var(--linkedin-blue-light)">
+          <svg width="32" height="32" fill="var(--linkedin-blue)" viewBox="0 0 24 24"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">No notifications yet</h3>
+        <p class="text-sm text-gray-500 mb-4">When someone matches your skills or interacts with your posts, you'll see it here.</p>
+        <a href="/feed" class="btn btn-primary">Go to Feed</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script>
+    let allNotifications = [];
+    let currentFilter = 'all';
+
+    // ============================================
+    // Initialize Notifications
+    // ============================================
+    async function initNotifications() {
+      document.getElementById('navbar-container').innerHTML = generateNavbar('notifications');
+
+      const user = await checkAuth();
+      if (!user) return;
+
+      await loadNotifications();
+    }
+
+    /**
+     * Load notifications from API
+     */
+    async function loadNotifications() {
+      try {
+        const data = await api.getNotifications();
+        allNotifications = data.notifications;
+
+        document.getElementById('notif-loading').style.display = 'none';
+
+        if (allNotifications.length === 0) {
+          document.getElementById('notif-empty').style.display = 'block';
+          document.getElementById('notif-subtitle').textContent = 'No new notifications';
+          return;
+        }
+
+        document.getElementById('notif-subtitle').textContent = 
+          `${data.unreadCount} unread notification${data.unreadCount !== 1 ? 's' : ''}`;
+
+        if (data.unreadCount > 0) {
+          document.getElementById('mark-read-btn').style.display = 'inline-flex';
+        }
+
+        renderNotifications(allNotifications);
+      } catch (error) {
+        document.getElementById('notif-loading').innerHTML = `
+          <div class="p-8 text-center">
+            <p class="text-sm text-red-500">Failed to load notifications</p>
+            <button onclick="loadNotifications()" class="btn btn-outline btn-sm mt-2">Retry</button>
+          </div>`;
+      }
+    }
+
+    /**
+     * Render notifications list
+     */
+    function renderNotifications(notifications) {
+      const container = document.getElementById('notifications-list');
+      container.style.display = 'block';
+
+      if (notifications.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center">
+            <p class="text-sm text-gray-400">No notifications in this category</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = notifications.map((notif, i) => {
+        const relatedUser = notif.relatedUser || {};
+        const delay = Math.min(i * 0.03, 0.3);
+
+        // Icon based on type
+        const icons = {
+          skill_match: `<div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#dcfce7">
+            <svg width="20" height="20" fill="#057642" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+          </div>`,
+          like: `<div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-red-50">
+            <svg width="20" height="20" fill="#dc2626" viewBox="0 0 24 24"><path d="M6.633 10.5c.806 1.317 1.683 2.458 2.634 3.425.95.966 2.084 1.792 3.4 2.475a.75.75 0 00.57 0c1.316-.683 2.45-1.509 3.4-2.475.951-.967 1.828-2.108 2.634-3.425A20.07 20.07 0 0021 6.75c-2.15-.9-4.567-1.5-7.5-1.5S5.15 5.85 3 6.75c.483 1.3 1.05 2.517 1.633 3.75z"/></svg>
+          </div>`,
+          comment: `<div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:var(--linkedin-blue-light)">
+            <svg width="20" height="20" fill="var(--linkedin-blue)" viewBox="0 0 24 24"><path d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/></svg>
+          </div>`,
+          connection: `<div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#e0f2fe">
+            <svg width="20" height="20" fill="#0284c7" viewBox="0 0 24 24"><path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+          </div>`
+        };
+
+        return `
+        <div class="notification-item ${notif.read ? '' : 'unread'} animate-fade-in-up" style="animation-delay:${delay}s;opacity:0" data-type="${notif.type}">
+          <div class="flex items-start gap-3">
+            ${relatedUser.profileImage ? 
+              `<a href="/profile?id=${relatedUser._id}" class="flex-shrink-0">
+                <img src="${relatedUser.profileImage}" alt="${relatedUser.name}" class="w-10 h-10 rounded-full object-cover">
+              </a>` : 
+              icons[notif.type] || icons.skill_match
+            }
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-gray-800">${escapeHtml(notif.message)}</p>
+              <div class="flex items-center gap-3 mt-1.5">
+                <span class="text-xs text-gray-400">${timeAgo(notif.createdAt)}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium ${getTypeBadgeClass(notif.type)}">${getTypeLabel(notif.type)}</span>
+              </div>
+              ${relatedUser._id ? `
+                <a href="/profile?id=${relatedUser._id}" class="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-blue-600 hover:underline">
+                  View Profile →
+                </a>
+              ` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /**
+     * Get badge class for notification type
+     */
+    function getTypeBadgeClass(type) {
+      const classes = {
+        skill_match: 'bg-green-50 text-green-700',
+        like: 'bg-red-50 text-red-600',
+        comment: 'bg-blue-50 text-blue-600',
+        connection: 'bg-sky-50 text-sky-600'
+      };
+      return classes[type] || 'bg-gray-50 text-gray-600';
+    }
+
+    /**
+     * Get label for notification type
+     */
+    function getTypeLabel(type) {
+      const labels = {
+        skill_match: '🎯 Skill Match',
+        like: '❤️ Like',
+        comment: '💬 Comment',
+        connection: '🤝 Connection'
+      };
+      return labels[type] || type;
+    }
+
+    /**
+     * Filter notifications by type
+     */
+    function filterNotifications(type) {
+      currentFilter = type;
+
+      // Update active filter button
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('btn-ghost');
+      });
+      const activeBtn = document.getElementById(`filter-${type}`);
+      activeBtn.classList.add('active');
+      activeBtn.classList.remove('btn-ghost');
+
+      // Filter and render
+      const filtered = type === 'all' 
+        ? allNotifications 
+        : allNotifications.filter(n => n.type === type);
+
+      renderNotifications(filtered);
+    }
+
+    /**
+     * Mark all notifications as read
+     */
+    async function markAllAsRead() {
+      try {
+        await api.markNotificationsRead();
+        
+        // Update UI
+        document.querySelectorAll('.notification-item.unread').forEach(el => {
+          el.classList.remove('unread');
+        });
+        
+        document.getElementById('mark-read-btn').style.display = 'none';
+        document.getElementById('notif-subtitle').textContent = '0 unread notifications';
+
+        // Update navbar badge
+        const badge = document.getElementById('notif-badge');
+        if (badge) badge.style.display = 'none';
+
+        showToast('All notifications marked as read', 'success');
+      } catch (error) {
+        showToast('Failed to update notifications', 'error');
+      }
+    }
+
+    // Style active filter
+    const style = document.createElement('style');
+    style.textContent = `
+      .filter-btn.active {
+        background: var(--linkedin-blue) !important;
+        color: white !important;
+        border-color: var(--linkedin-blue) !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    initNotifications();
+  </script>
+</body>
+</html>
